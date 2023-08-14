@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/widaT/go-captcha/images"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -62,8 +64,14 @@ func cos(handle func(http.ResponseWriter, *http.Request)) func(http.ResponseWrit
 
 func main() {
 
-	captcha.LoadBackgroudImages("./images/puzzle_captcha/backgroud")
-	captcha.LoadBlockImages("./images/puzzle_captcha/block")
+	err := captcha.LoadBackgroudImages(captcha.NewPath("./images/puzzle_captcha/backgroud"))
+	if err != nil {
+		log.Panic(err)
+	}
+	err = captcha.LoadBlockImages(captcha.NewFS(images.Images, "puzzle_captcha/block"))
+	if err != nil {
+		log.Panic(err)
+	}
 
 	http.HandleFunc("/captcha/get", cos(func(rw http.ResponseWriter, req *http.Request) {
 		ret, err := captcha.Run()
@@ -166,7 +174,7 @@ func main() {
 	}))
 
 	http.Handle("/", http.FileServer(http.Dir("./dist")))
-	panic(http.ListenAndServe(":8081", nil))
+	panic(http.ListenAndServe(":8889", nil))
 }
 func md5Str(str string) string {
 	data := []byte(str)

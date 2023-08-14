@@ -3,6 +3,7 @@ package captcha
 import (
 	"bytes"
 	"image"
+	"io/fs"
 	"io/ioutil"
 	"path"
 	"strings"
@@ -13,13 +14,59 @@ var (
 	bkImgCache [][]byte //缓存滑块模板图片
 )
 
-func LoadBackgroudImages(path string) (err error) {
-	bgImgCache, err = loadImages(path)
+type Images interface {
+	Images() (files [][]byte, err error)
+}
+type FS struct {
+	fsys fs.FS
+	name string
+}
+
+func NewFS(fsys fs.FS, name string) *FS {
+	return &FS{fsys: fsys, name: name}
+}
+func (f *FS) Images() (files [][]byte, err error) {
+	dirs, err := fs.ReadDir(f.fsys, f.name)
+	if err != nil {
+		return nil, err
+	}
+
+	var fileArr [][]byte
+
+	for _, d := range dirs {
+		if d.IsDir() {
+			continue
+		}
+		if strings.HasSuffix(d.Name(), ".png") {
+			buf, err := fs.ReadFile(f.fsys, path.Join(f.name, d.Name()))
+			if err != nil {
+				return nil, err
+			}
+			fileArr = append(fileArr, buf)
+		}
+	}
+	return fileArr, nil
+}
+
+type Path struct {
+	p string
+}
+
+func NewPath(p string) *Path {
+	return &Path{p: p}
+}
+
+func (f *Path) Images() (files [][]byte, err error) {
+	return loadImages(f.p)
+}
+
+func LoadBackgroudImages(images Images) (err error) {
+	bgImgCache, err = images.Images()
 	return
 }
 
-func LoadBlockImages(path string) (err error) {
-	bkImgCache, err = loadImages(path)
+func LoadBlockImages(images Images) (err error) {
+	bkImgCache, err = images.Images()
 	return
 }
 
