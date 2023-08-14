@@ -1,4 +1,4 @@
-module github.com/widaT/go-captcha
+module github.com/yeyudekuangxiang/go-captcha
 
 go 1.17
 

@@ -4,14 +4,14 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"github.com/widaT/go-captcha/images"
+	"github.com/yeyudekuangxiang/go-captcha/images"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	captcha "github.com/widaT/go-captcha/puzzle_captcha"
+	captcha "github.com/yeyudekuangxiang/go-captcha/puzzle_captcha"
 )
 
 type RespJson struct {

@@ -5,12 +5,12 @@ import (
 	"encoding/base64"
 	"io/ioutil"
 
-	captcha "github.com/widaT/go-captcha/puzzle_captcha"
+	captcha "github.com/yeyudekuangxiang/go-captcha/puzzle_captcha"
 )
 
 func main() {
-	captcha.LoadBackgroudImages("./images/puzzle_captcha/backgroud")
-	captcha.LoadBlockImages("./images/puzzle_captcha/block")
+	captcha.LoadBackgroudImages(captcha.NewPath("./images/puzzle_captcha/backgroud"))
+	captcha.LoadBlockImages(captcha.NewPath("./images/puzzle_captcha/block"))
 
 	ret, err := captcha.Run()
 	if err != nil {
