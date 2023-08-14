@@ -7,12 +7,56 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log"
+	"sync"
+	"time"
 )
 
 // 干扰图片
 const interferenceOptions = 1
 
+// 提前计算图片 避免瞬时消耗cpu
+var cacheCaptchaNum int64 = 0
+var cachePool []*CutoutRet
+var cacheLock sync.Mutex
+
+func SetCacheCaptchaNum(num int64) {
+	cacheLock.Lock()
+	defer cacheLock.Unlock()
+	cacheCaptchaNum = num
+}
+func InitCachePool() {
+	go func() {
+		for {
+			time.Sleep(time.Millisecond * 150)
+			cacheLock.Lock()
+			if int64(len(cachePool)) < cacheCaptchaNum {
+				ret, err := Run()
+				if err != nil {
+					log.Println("生成ret失败", err)
+				} else {
+					cachePool = append(cachePool, ret)
+				}
+			}
+			cacheLock.Unlock()
+		}
+	}()
+}
+func RunFromCache() (*CutoutRet, error) {
+	cacheLock.Lock()
+	defer cacheLock.Unlock()
+	if len(cachePool) > 0 {
+		ret := cachePool[0]
+		cachePool = cachePool[1:]
+		log.Println("left", len(cachePool))
+		return ret, nil
+	}
+	log.Println("left", len(cachePool))
+	return Run()
+}
+
 func Run() (*CutoutRet, error) {
+
 	bgImage, err := randBackgroudImage()
 	if err != nil {
 		return nil, err
@@ -117,8 +161,8 @@ func cutOut(bgImage, bkImage, newBkImage *ImageBuf, x int) {
 	}
 }
 
-//readNeighborPixel 读取邻近9个点像素，后面最类似高斯模糊计算
-//（并非严格的高斯模糊，高斯模糊算法效率太低，本例不需要严格的高斯模糊算法）
+// readNeighborPixel 读取邻近9个点像素，后面最类似高斯模糊计算
+// （并非严格的高斯模糊，高斯模糊算法效率太低，本例不需要严格的高斯模糊算法）
 // |2|3|4|
 // |5|1|6|
 // |7|8|9|

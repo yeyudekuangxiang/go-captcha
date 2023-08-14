@@ -73,8 +73,11 @@ func main() {
 		log.Panic(err)
 	}
 
+	captcha.SetCacheCaptchaNum(5)
+	captcha.InitCachePool()
+
 	http.HandleFunc("/captcha/get", cos(func(rw http.ResponseWriter, req *http.Request) {
-		ret, err := captcha.Run()
+		ret, err := captcha.RunFromCache()
 		if err != nil {
 			return
 		}
